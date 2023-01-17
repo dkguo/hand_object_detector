@@ -370,7 +370,8 @@ if __name__ == '__main__':
               
         if vis:
           # visualization
-          im2show = vis_detections_filtered_objects_PIL(im2show, obj_dets, hand_dets, thresh_hand, thresh_obj)
+          font_path = 'modules/segmentation_points/hand_object_detector/lib/model/utils/times_b.ttf'
+          im2show = vis_detections_filtered_objects_PIL(im2show, obj_dets, hand_dets, thresh_hand, thresh_obj, font_path)
 
         misc_toc = time.time()
         nms_time = misc_toc - misc_tic
