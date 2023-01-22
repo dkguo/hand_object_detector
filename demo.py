@@ -7,6 +7,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import pandas as pd
+
 import _init_paths
 import os
 import sys
@@ -229,8 +231,8 @@ if __name__ == '__main__':
     thresh_obj = args.thresh_obj
     vis = args.vis
 
-    # print(f'thresh_hand = {thresh_hand}')
-    # print(f'thnres_obj = {thresh_obj}')
+    print(f'thresh_hand = {thresh_hand}')
+    print(f'thnres_obj = {thresh_obj}')
 
     webcam_num = args.webcam_num
     # Set up webcam or get image directories
@@ -245,14 +247,23 @@ if __name__ == '__main__':
 
     print('Loaded Photo: {} images.'.format(num_images))
 
+    results = np.empty(0, dtype=[('scene_name', 'U20'),
+                                 ('camera_name', 'U22'),
+                                 ('frame', 'i4'),
+                                 ('hand/obj', 'U5'),
+                                 ('bbox', 'O'),
+                                 ('confidence', 'f'),
+                                 ('state', 'f'),
+                                 ('offset', 'O'),
+                                 ('left/right', 'f')])
 
-    while (num_images >= 0):
+    while num_images >= 0:
         total_tic = time.time()
         if webcam_num == -1:
           num_images -= 1
 
         # Get image from the webcam
-        if webcam_num >= 0:
+        if webcam_num >= 450:
           if not cap.isOpened():
             raise RuntimeError("Webcam could not open. Please check connection.")
           ret, frame = cap.read()
@@ -382,11 +393,45 @@ if __name__ == '__main__':
             sys.stdout.flush()
 
         if vis and webcam_num == -1:
-            
+            # import pdb;
+            # pdb.set_trace()
+
             folder_name = args.save_dir
             os.makedirs(folder_name, exist_ok=True)
             result_path = os.path.join(folder_name, imglist[num_images][:-4] + "_det.png")
             im2show.save(result_path)
+
+            # save results
+            s = folder_name.find('scene_')
+            scene_name = folder_name[s:s + 19]
+            camera_name = folder_name[s+20:s+42]
+            frame_id =  int(imglist[num_images][:-4])
+            if obj_dets is not None:
+                for obj_det in obj_dets:
+                    results = np.append(results,
+                                        np.array([(scene_name,
+                                                   camera_name,
+                                                   frame_id,
+                                                   'obj',
+                                                   obj_det[:4],
+                                                   obj_det[4],
+                                                   obj_det[5],
+                                                   obj_det[6:9],
+                                                   obj_det[9])],
+                                                 dtype=results.dtype))
+            if hand_dets is not None:
+                for hand_det in hand_dets:
+                    results = np.append(results,
+                                        np.array([(scene_name,
+                                                   camera_name,
+                                                   frame_id,
+                                                   'hand',
+                                                   hand_det[:4],
+                                                   hand_det[4],
+                                                   hand_det[5],
+                                                   hand_det[6:9],
+                                                   hand_det[9])],
+                                                 dtype=results.dtype))
         else:
             im2showRGB = cv2.cvtColor(im2show, cv2.COLOR_BGR2RGB)
             cv2.imshow("frame", im2showRGB)
@@ -400,3 +445,11 @@ if __name__ == '__main__':
     if webcam_num >= 0:
         cap.release()
         cv2.destroyAllWindows()
+
+    if vis and webcam_num == -1:
+        df = pd.DataFrame.from_records(results)
+        df['bbox'] = df['bbox'].apply(np.ndarray.tolist)
+        df['offset'] = df['offset'].apply(np.ndarray.tolist)
+        df = df.sort_values(by=['frame'])
+        file_path = f'{folder_name}/detections.csv'
+        df.to_csv(file_path, index=False)
