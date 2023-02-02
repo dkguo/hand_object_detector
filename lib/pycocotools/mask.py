@@ -2,9 +2,9 @@ __author__ = 'tsungyi'
 
 from . import _mask
 
-# Interface for manipulating masks stored in RLE format.
+# Interface for manipulating hand_masks stored in RLE format.
 #
-# RLE is a simple yet efficient format for storing binary masks. RLE
+# RLE is a simple yet efficient format for storing binary hand_masks. RLE
 # first divides a vector (or vectorized image) into a series of piecewise
 # constant regions and then for each piece simply stores the length of
 # that piece. For example, given M=[0 0 1 1 1 0 1] the RLE counts would
@@ -20,7 +20,7 @@ from . import _mask
 # O(sqrt(n)) where n is number of pixels in the object. Hence space usage
 # is substantially lower, especially for large simple objects (large n).
 #
-# Many common operations on masks can be computed directly using the RLE
+# Many common operations on hand_masks can be computed directly using the RLE
 # (without need for decoding). This includes computations such as area,
 # union, intersection, etc. All of these operations are linear in the
 # size of the RLE, in other words they are O(sqrt(n)) where n is the area
@@ -28,17 +28,17 @@ from . import _mask
 # Thus, using the RLE can result in substantial computational savings.
 #
 # The following API functions are defined:
-#  encode         - Encode binary masks using RLE.
-#  decode         - Decode binary masks encoded via RLE.
-#  merge          - Compute union or intersection of encoded masks.
-#  iou            - Compute intersection over union between masks.
-#  area           - Compute area of encoded masks.
-#  toBbox         - Get bounding boxes surrounding encoded masks.
+#  encode         - Encode binary hand_masks using RLE.
+#  decode         - Decode binary hand_masks encoded via RLE.
+#  merge          - Compute union or intersection of encoded hand_masks.
+#  iou            - Compute intersection over union between hand_masks.
+#  area           - Compute area of encoded hand_masks.
+#  toBbox         - Get bounding boxes surrounding encoded hand_masks.
 #  frPyObjects    - Convert polygon, bbox, and uncompressed RLE to encoded RLE mask.
 #
 # Usage:
-#  Rs     = encode( masks )
-#  masks  = decode( Rs )
+#  Rs     = encode( hand_masks )
+#  hand_masks  = decode( Rs )
 #  R      = merge( Rs, intersect=false )
 #  o      = iou( dt, gt, iscrowd )
 #  a      = area( Rs )
@@ -46,13 +46,13 @@ from . import _mask
 #  Rs     = frPyObjects( [pyObjects], h, w )
 #
 # In the API the following formats are used:
-#  Rs      - [dict] Run-length encoding of binary masks
+#  Rs      - [dict] Run-length encoding of binary hand_masks
 #  R       - dict Run-length encoding of binary mask
-#  masks   - [hxwxn] Binary mask(s) (must have type np.ndarray(dtype=uint8) in column-major order)
+#  hand_masks   - [hxwxn] Binary mask(s) (must have type np.ndarray(dtype=uint8) in column-major order)
 #  iscrowd - [nx1] list of np.ndarray. 1 indicates corresponding gt image has crowd region to ignore
 #  bbs     - [nx4] Bounding box(es) stored as [x y w h]
 #  poly    - Polygon stored as [[x1 y1 x2 y2...],[x1 y1 ...],...] (2D list)
-#  dt,gt   - May be either bounding boxes or encoded masks
+#  dt,gt   - May be either bounding boxes or encoded hand_masks
 # Both poly and bbs are 0-indexed (bbox=[0 0 1 1] encloses first pixel).
 #
 # Finally, a note about the intersection over union (iou) computation.
